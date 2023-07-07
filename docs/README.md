@@ -22,7 +22,7 @@ _The reverse engineering the chat feature of the new version of Bing_
 
 </p>
 
-<details>
+<details open>
 
 <summary>
 
@@ -30,57 +30,70 @@ _The reverse engineering the chat feature of the new version of Bing_
 
 </summary>
 
-### Install package
+## Install package
 
 ```bash
 python3 -m pip install EdgeGPT --upgrade
 ```
 
-### Requirements
+## Requirements
+
 
 - python 3.8+
-- A Microsoft Account with access to <https://bing.com/chat> (Optional)
+- A Microsoft Account with access to <https://bing.com/chat> (Optional, depending on your region)
 - Required in a supported country or region with New Bing (Chinese mainland VPN required)
 - [Selenium](https://pypi.org/project/selenium/) (for automatic cookie setup)
 
-<details>
-
-<summary>
-
-# Chatbot
-
-</summary>
-
 ## Authentication
 
-!!! NOT REQUIRED ANYMORE !!!
-Microsoft has made the chat feature available to everyone, so you can skip this step.
+!!! POSSIBLY NOT REQUIRED ANYMORE !!!
 
-1. Install the latest version of Microsoft Edge
-<details>
+**In some regions**, Microsoft has made the chat feature **available** to everyone, so you might be able to **skip this step**. You can check this with a browser (with user-agent set to reflect Edge), by **trying to start a chat without logging in**.
 
-2. Alternatively, you can use any browser and set the user-agent to look like you're using Edge (e.g., `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.51`). You can do this easily with an extension like "User-Agent Switcher and Manager" for [Chrome](https://chrome.google.com/webstore/detail/user-agent-switcher-and-m/bhchdcejhohfmigjafbampogmaanbfkg) and [Firefox](https://addons.mozilla.org/en-US/firefox/addon/user-agent-string-switcher/).
+It was also found that it might **depend on your IP address**. For example, if you try to access the chat features from an IP that is known to **belong to a datacenter range** (vServers, root servers, VPN, common proxies, ...), **you might be required to log in** while being able to access the features just fine from your home IP address.
 
-</details>
+If you receive the following error, you can try **providing a cookie** and see if it works then:
 
-3. Open [bing.com/chat](https://bing.com/chat)
-4. If you see a chat feature, you are good to continue...
-5. Install the cookie editor extension for [Chrome](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) or [Firefox](https://addons.mozilla.org/en-US/firefox/addon/cookie-editor/)
-6. Go to [bing.com](https://bing.com)
-7. Open the extension
-8. Click "Export" on the bottom right, then "Export as JSON" (This saves your cookies to clipboard)
-9. Paste your cookies into a file `cookies.json`
+`Exception: Authentication failed. You have not been accepted into the beta.`
 
-### In code:
+### Collect cookies
+
+1. Get a browser that looks like Microsoft Edge.
+
+ * a) (Easy) Install the latest version of Microsoft Edge
+ * b) (Advanced) Alternatively, you can use any browser and set the user-agent to look like you're using Edge (e.g., `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.51`). You can do this easily with an extension like "User-Agent Switcher and Manager" for [Chrome](https://chrome.google.com/webstore/detail/user-agent-switcher-and-m/bhchdcejhohfmigjafbampogmaanbfkg) and [Firefox](https://addons.mozilla.org/en-US/firefox/addon/user-agent-string-switcher/).
+
+2. Open [bing.com/chat](https://bing.com/chat)
+3. If you see a chat feature, you are good to continue...
+4. Install the cookie editor extension for [Chrome](https://chrome.google.com/webstore/detail/cookie-editor/hlkenndednhfkekhgcdicdfddnkalmdm) or [Firefox](https://addons.mozilla.org/en-US/firefox/addon/cookie-editor/)
+5. Go to [bing.com](https://bing.com)
+6. Open the extension
+7. Click "Export" on the bottom right, then "Export as JSON" (This saves your cookies to clipboard)
+8. Paste your cookies into a file `bing_cookies_*.json`.
+   * NOTE: The **cookies file name MUST follow the regex pattern `bing_cookies_*.json`**, so that they could be recognized by internal cookie processing mechanisms
+
+
+
+### Use cookies in code:
 ```python
-cookies = json.loads(open("./path/to/cookies.json", encoding="utf-8").read())
+cookies = json.loads(open("./path/to/cookies.json", encoding="utf-8").read())  # might omit cookies option
 bot = await Chatbot.create(cookies=cookies)
 ```
 
-## Running from the Command Line
+</details>
+
+<details open>
+
+<summary>
+
+# How to use Chatbot
+
+</summary>
+
+## Run from Command Line
 
 ```
- $ python3 -m EdgeGPT -h
+ $ python3 -m EdgeGPT.EdgeGPT -h
 
         EdgeGPT - A demo of reverse engineering the Bing GPT chatbot
         Repo: github.com/acheong08/EdgeGPT
@@ -89,15 +102,15 @@ bot = await Chatbot.create(cookies=cookies)
         !help for help
 
         Type !exit to exit
-        Enter twice to send message or set --enter-once to send one line message
 
-usage: EdgeGPT.py [-h] [--enter-once] [--no-stream] [--rich] [--proxy PROXY] [--wss-link WSS_LINK]
+usage: EdgeGPT.py [-h] [--enter-once] [--search-result] [--no-stream] [--rich] [--proxy PROXY] [--wss-link WSS_LINK]
                   [--style {creative,balanced,precise}] [--prompt PROMPT] [--cookie-file COOKIE_FILE]
-                  [--history-file HISTORY_FILE]
+                  [--history-file HISTORY_FILE] [--locale LOCALE]
 
 options:
   -h, --help            show this help message and exit
   --enter-once
+  --search-result
   --no-stream
   --rich
   --proxy PROXY         Proxy URL (e.g. socks5://127.0.0.1:1080)
@@ -108,9 +121,11 @@ options:
                         path to cookie file
   --history-file HISTORY_FILE
                         path to history file
+  --locale LOCALE       your locale (e.g. en-US, zh-CN, en-IE, en-GB)
 ```
+(China/US/UK/Norway has enhanced support for locale)
 
-## Running in Python
+## Run in Python
 
 ### 1. The `Chatbot` class and `asyncio` for more granular control
 
@@ -118,10 +133,10 @@ Use Async for the best experience, for example:
 
 ```python
 import asyncio
-from EdgeGPT import Chatbot, ConversationStyle
+from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
 
 async def main():
-    bot = await Chatbot.create() # Passing cookies is optional
+    bot = await Chatbot.create() # Passing cookies is "optional", as explained above
     print(await bot.ask(prompt="Hello world", conversation_style=ConversationStyle.creative))
     await bot.close()
 
@@ -129,22 +144,22 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-<details>
-<summary>
-
 ### 2) The `Query` and `Cookie` helper classes
-
-  </summary>
 
 Create a simple Bing Chat AI query (using the 'precise' conversation style by default) and see just the main text output rather than the whole API response:
 
-Remeber to store your cookies in a specific format: `bing_cookie_*.json`.
-  
+Remeber to store your cookies in a specific format: `bing_cookies_*.json`.
+
 ```python
-from EdgeGPT import Query, Cookie
+from EdgeGPT.EdgeUtils import Query, Cookie
 
 q = Query("What are you? Give your answer as Python code")
 print(q)
+```
+The default directory for storing Cookie files is `HOME/bing_cookies` but you can change it with:
+
+```python
+Cookie.dir_path = Path(r"...")
 ```
 
 Or change the conversation style or cookie file to be used:
@@ -152,26 +167,33 @@ Or change the conversation style or cookie file to be used:
 ```python
 q = Query(
   "What are you? Give your answer as Python code",
-  style="creative",  # or 'balanced'
-  cookies="./bing_cookies_alternative.json"
+  style="creative",  # or: 'balanced', 'precise'
+  cookie_file="./bing_cookies_alternative.json"
 )
+
+#  Use `help(Query)` to see other supported parameters.
 ```
 
-Quickly extract the text output, code snippets, list of sources/references, or suggested follow-on questions using the following attributes:
+Quickly extract the text output, code snippets, list of sources/references, or suggested follow-on questions from a response using the following attributes:
 
 ```python
-q.output
-q.code
+q.output  # Also: print(q)
+q.sources
+q.sources_dict
 q.suggestions
-q.sources       # for the full json output
-q.sources_dict  # for a dictionary of titles and urls
+q.code
+q.code_blocks
+q.code_block_formatsgiven)
 ```
 
 Get the orginal prompt and the conversation style you specified:
 
 ```python
 q.prompt
+q.ignore_cookies
 q.style
+q.simplify_response
+q.locale
 repr(q)
 ```
 
@@ -179,7 +201,8 @@ Access previous Queries made since importing `Query`:
 
 ```python
 Query.index  # A list of Query objects; updated dynamically
-Query.request_count  # A tally of requests made using each cookie file
+Query.image_dir_path
+
 ```
 
 And finally, the `Cookie` class supports multiple cookie files, so if you create additional cookie files with the naming convention `bing_cookies_*.json`, your queries will automatically try using the next file (alphabetically) if you've exceeded your daily quota of requests (currently set at 200).
@@ -188,21 +211,22 @@ Here are the main attributes which you can access:
 
 ```python
 Cookie.current_file_index
-Cookie.dirpath
-Cookie.search_pattern  # default is `bing_cookies_*.json`
-Cookie.files()  # list as files that match .search_pattern
-Cookie.current_filepath
+Cookie.current_file_path
 Cookie.current_data
-Cookie.import_next()
+Cookie.dir_path
+Cookie.search_pattern
+Cookie.files
 Cookie.image_token
+Cookie.import_next
+Cookie.rotate_cookies
 Cookie.ignore_files
+Cookie.supplied_files
+Cookie.request_count
 ```
-
-</details>
 
 ---
 
-## Running with Docker
+## Run with Docker
 
 This assumes you have a file cookies.json in your current working directory
 
@@ -220,18 +244,20 @@ docker run --rm -it -v $(pwd)/cookies.json:/cookies.json:ro -e COOKIE_FILE='/coo
 
 </details>
 
-<details>
+</details>
+
+<details open>
 
 <summary>
 
-# Image generator
+# How to use Image generator
 
 </summary>
 
-## Running from the Command Line
+## Run from Command Line
 
 ```bash
-$ python3 -m ImageGen -h
+$ python3 -m ImageGen.ImageGen -h
 usage: ImageGen.py [-h] [-U U] [--cookie-file COOKIE_FILE] --prompt PROMPT [--output-dir OUTPUT_DIR] [--quiet] [--asyncio]
 
 optional arguments:
@@ -246,14 +272,14 @@ optional arguments:
   --asyncio             Run ImageGen using asyncio
 ```
 
-## Running in Python
+## Run in Python
 
 ### 1) The `ImageQuery` helper class
 
 Generate images based on a simple prompt and download to the current working directory:
 
 ```python
-from EdgeGPT import ImageQuery
+from EdgeGPT.EdgeUtils import ImageQuery
 
 q=ImageQuery("Meerkats at a garden party in Devon")
 ```
@@ -267,7 +293,7 @@ Query.image_dirpath = Path("./to_another_folder")
 ### 2) The `ImageGen` class and `asyncio` for more granular control
 
 ```python
-from ImageGen import ImageGen
+from EdgeGPT.ImageGen import ImageGen
 import argparse
 import json
 
@@ -324,14 +350,30 @@ if __name__ == "__main__":
 
 </details>
 
+<details open>
+
+<summary>
+
 # Star History
+
+</summary>
 
 [![Star History Chart](https://api.star-history.com/svg?repos=acheong08/EdgeGPT&type=Date)](https://star-history.com/#acheong08/EdgeGPT&Date)
 
+</details>
+
+<details open>
+
+<summary>
+
 # Contributors
+
+</summary>
 
 This project exists thanks to all the people who contribute.
 
  <a href="https://github.com/acheong08/EdgeGPT/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=acheong08/EdgeGPT" />
  </a>
+
+</details>

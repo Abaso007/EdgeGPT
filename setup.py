@@ -6,13 +6,13 @@ from setuptools import setup
 DOCS_PATH = Path(__file__).parents[0] / "docs/README.md"
 PATH = Path("README.md")
 if not PATH.exists():
-    with open(DOCS_PATH, encoding="utf-8") as f1:
-        with open(PATH, "w+", encoding="utf-8") as f2:
+    with Path.open(DOCS_PATH, encoding="utf-8") as f1:
+        with Path.open(PATH, "w+", encoding="utf-8") as f2:
             f2.write(f1.read())
 
 setup(
     name="EdgeGPT",
-    version="0.6.10",
+    version="0.10.6",
     license="GNU General Public License v2.0",
     author="Antonio Cheong",
     author_email="acheong@student.dalat.org",
@@ -21,14 +21,9 @@ setup(
     package_dir={"": "src"},
     url="https://github.com/acheong08/EdgeGPT",
     project_urls={"Bug Report": "https://github.com/acheong08/EdgeGPT/issues/new"},
-    entry_points={
-        "console_scripts": [
-            "edge-gpt = EdgeGPT:main",
-            "edge-gpt-image = ImageGen:main",
-        ],
-    },
     install_requires=[
-        "httpx",
+        "httpx[socks]>=0.24.0",
+        "aiohttp",
         "websockets",
         "rich",
         "certifi",
@@ -36,9 +31,9 @@ setup(
         "requests",
         "BingImageCreator>=0.3.0",
     ],
-    long_description=open(PATH, encoding="utf-8").read(),
+    long_description=Path.open(PATH, encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    py_modules=["EdgeGPT", "ImageGen"],
+    py_modules=["EdgeGPT", "EdgeUtils", "ImageGen"],
     classifiers=[
         "License :: OSI Approved :: The Unlicense (Unlicense)",
         "Intended Audience :: Developers",
